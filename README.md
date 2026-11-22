@@ -1,44 +1,110 @@
 # Tu Solution
 
-Aplicación Flutter para la gestión local de un taller de reparación de celulares, tablets y laptops. El proyecto está organizado con arquitectura MVVM: las pantallas se encuentran en `lib/Screens` y la lógica de presentación y negocio en `lib/ViewModels`.
+Aplicación móvil desarrollada en Flutter para la gestión de un taller de reparación de equipos electrónicos. Permite administrar clientes, dispositivos, órdenes de reparación, técnicos y repuestos desde una única aplicación, utilizando una base de datos local para conservar la información.
 
-## Tecnologías
+## Características principales
 
-- Flutter para Android.
-- Drift + SQLite para persistencia local.
-- Riverpod para estado y proveedores.
-- GoRouter para navegación.
-- SharedPreferences para conservar el tema elegido.
+### Gestión de clientes
+- Registrar clientes con nombre y número de teléfono.
+- Consultar los clientes registrados.
+- Editar la información de los clientes.
+- Consultar el historial de reparaciones de cada cliente.
+- Evitar la eliminación de clientes que tengan dispositivos registrados, para preservar el historial.
 
-## Funcionalidades
+### Gestión de dispositivos
+- Registrar dispositivos asociados a un cliente.
+- Almacenar tipo, marca, modelo y número de serie.
+- Reconocer dispositivos existentes mediante el número de serie dentro del mismo cliente.
+- Consultar el historial de reparaciones de cada dispositivo.
+- Permitir que un mismo dispositivo tenga varias órdenes de reparación a lo largo del tiempo.
 
-- Dashboard con resumen de órdenes, clientes, técnicos y alertas de inventario.
-- Creación de órdenes con cliente, dispositivo y técnico responsable en un único flujo.
-- Reutilización de un dispositivo existente cuando coincide el número de serie para el mismo cliente.
-- Bloqueo de órdenes activas duplicadas para el mismo dispositivo.
-- Flujo de estados: recibida, en reparación, lista, entregada y cancelada.
-- Registro de diagnóstico, trabajos y costos de mano de obra.
-- Inventario de repuestos con alta mediante ventana emergente.
-- Descuento transaccional de existencias al utilizar repuestos en una orden.
-- Alerta de stock bajo cuando quedan 3 unidades o menos.
-- Consulta del historial de órdenes entregadas o canceladas.
-- Consulta de los tres técnicos predefinidos y su carga de órdenes activas.
-- Tema claro, oscuro y sistema, con preferencia guardada.
-- Funcionamiento local sin autenticación ni conexión obligatoria a Internet.
+### Gestión de órdenes de reparación
+- Crear órdenes seleccionando un cliente existente o registrando uno nuevo.
+- Registrar o reutilizar el dispositivo del cliente.
+- Asignar un técnico responsable.
+- Registrar la falla reportada por el cliente.
+- Registrar diagnósticos y trabajos realizados.
+- Administrar los estados de las órdenes:
+  - Recibida.
+  - En reparación.
+  - Lista para entregar.
+  - Entregada.
+  - Cancelada.
+- Consultar órdenes abiertas y su información.
+- Consultar el historial de reparaciones.
+- Reasignar el técnico responsable de una orden.
+- Impedir la creación de otra orden para un dispositivo que ya tenga una orden abierta.
 
-## Estructura
+### Gestión de técnicos
+- Consultar los técnicos registrados.
+- Visualizar el técnico responsable de cada orden.
+- Consultar la carga de trabajo de los técnicos.
+- Asignar y reasignar técnicos a las órdenes.
+
+### Gestión de repuestos e inventario
+- Registrar repuestos con nombre, código, precio y existencias.
+- Editar los datos de los repuestos.
+- Consultar las existencias disponibles.
+- Descontar automáticamente las unidades utilizadas en una reparación.
+- Registrar el precio unitario aplicado al momento de utilizar el repuesto.
+- Alertar cuando las existencias sean bajas.
+
+### Cálculo de costos
+El costo total de una reparación se calcula sumando:
+
+**Total = Mano de obra + Costo de los repuestos utilizados**
+
+Los precios de los repuestos utilizados se conservan en el historial de cada orden, aunque posteriormente se modifique el precio del inventario.
+
+## Tecnologías utilizadas
+
+- **Flutter:** desarrollo de la aplicación móvil.
+- **Dart:** lenguaje de programación.
+- **SQLite:** almacenamiento local de información.
+- **Drift:** acceso y gestión de la base de datos.
+- **Riverpod:** administración del estado.
+- **GoRouter:** navegación entre pantallas.
+- **Arquitectura MVVM:** separación de responsabilidades entre interfaz, lógica y datos.
+
+## Almacenamiento de datos
+
+La aplicación utiliza una base de datos local SQLite mediante Drift.
+
+Esto permite:
+- Conservar los datos al cerrar y volver a abrir la aplicación.
+- Trabajar sin conexión a Internet.
+- Mantener relaciones entre clientes, dispositivos, órdenes, técnicos y repuestos.
+- Ejecutar operaciones relacionadas con el inventario mediante transacciones para mantener la consistencia de los datos.
+
+## Estructura del proyecto
+
+La organización principal del código es la siguiente:
 
 ```text
 lib/
-├── main.dart
+├── core/
+│   ├── router/
+│   │   └── app_router.dart
+│   └── theme/
+│       └── app_theme.dart
+│
+├── data/
+│   └── database/
+│       ├── app_database.dart
+│       └── app_database.g.dart
+│
 ├── Screens/
-│   ├── ajustes/
-│   ├── clientes/
-│   ├── dashboard/
-│   ├── historial/
-│   ├── ordenes/
-│   ├── repuestos/
-│   └── tecnicos/
+│   ├── ajustes_screen.dart
+│   ├── clientes_screen.dart
+│   ├── dashboard_screen.dart
+│   ├── historial_screen.dart
+│   ├── ordenes_screen.dart
+│   ├── orden_detalle_screen.dart
+│   ├── registrar_cliente_screen.dart
+│   ├── registrar_orden_screen.dart
+│   ├── repuestos_screen.dart
+│   └── tecnicos_screen.dart
+│
 ├── ViewModels/
 │   ├── app_providers.dart
 │   ├── clientes_view_model.dart
@@ -48,63 +114,78 @@ lib/
 │   ├── repuestos_view_model.dart
 │   ├── tecnicos_view_model.dart
 │   └── theme_view_model.dart
-├── core/
-│   ├── router/
-│   └── theme/
-├── data/
-│   └── database/
-└── shared/
-    ├── main_shell.dart
-    └── widgets.dart
+│
+├── shared/
+│   ├── main_shell.dart
+│   └── widgets.dart
+│
+└── main.dart
 ```
 
-Las pantallas se encargan de representar la interfaz y capturar las interacciones. Las operaciones de negocio, validaciones de flujo, acceso a datos desde la presentación y refresco de proveedores están delegados a los ViewModels. `AppDatabase` concentra las operaciones SQLite y las transacciones.
+## Requisitos para ejecutar el proyecto
 
-## Preparación y ejecución
+- Flutter SDK instalado.
+- Dart SDK compatible con la versión de Flutter.
+- Android Studio o Visual Studio Code.
+- Android SDK.
+- Emulador Android o dispositivo físico con depuración USB habilitada.
 
-Requisitos: Flutter instalado y configurado para Android, además de Android Studio o un dispositivo Android con depuración habilitada.
+## Instalación y ejecución
 
-Desde la carpeta raíz del proyecto:
+1. Clonar el repositorio:
 
-1. Generar la plataforma Android si no está incluida:
+```bash
+git clone URL_DEL_REPOSITORIO
+```
 
-   ```bash
-   flutter create --platforms android .
-   ```
+2. Entrar en la carpeta del proyecto:
 
-2. Instalar dependencias:
+```bash
+cd tu_solution
+```
 
-   ```bash
-   flutter pub get
-   ```
+3. Instalar las dependencias:
 
-3. Generar el código de Drift:
+```bash
+flutter pub get
+```
 
-   ```bash
-   dart run build_runner build --delete-conflicting-outputs
-   ```
+4. Generar los archivos de Drift si fuera necesario:
 
-4. Revisar el proyecto:
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```
 
-   ```bash
-   flutter analyze
-   ```
+5. Ejecutar la aplicación:
 
-5. Ejecutar:
+```bash
+flutter run
+```
 
-   ```bash
-   flutter run
-   ```
+## Pruebas recomendadas
 
-## Persistencia y datos iniciales
+Antes de considerar terminada la instalación y validación del proyecto, se recomienda comprobar los siguientes escenarios:
 
-La base de datos SQLite se crea localmente con el nombre `tu_solution`. La primera carga de técnicos inserta los tres técnicos predefinidos si todavía no existen. Los datos permanecen guardados al cerrar la aplicación.
+- Registrar un cliente y crear una orden para él.
+- Crear una orden utilizando un cliente existente.
+- Registrar un dispositivo y comprobar su reutilización mediante el número de serie.
+- Intentar crear una segunda orden mientras el dispositivo tenga una orden abierta.
+- Asignar y reasignar técnicos.
+- Registrar trabajos y comprobar el cálculo de la mano de obra.
+- Agregar repuestos a una orden y verificar el descuento de existencias.
+- Comprobar que se conserva el precio unitario histórico de los repuestos.
+- Consultar el historial de un cliente y de sus dispositivos.
+- Cerrar y volver a abrir la aplicación para comprobar la persistencia de los datos.
 
 ## Consideraciones
 
-- Al crear una orden se registra o selecciona el cliente, se registra o reutiliza su dispositivo y se asigna uno de los tres técnicos.
-- El número de serie permite reconocer un dispositivo ya registrado para el mismo cliente.
-- El sistema impide crear otra orden para un dispositivo que ya tenga una orden abierta.
-- El uso de repuestos descuenta el stock y registra el precio unitario aplicado dentro de una transacción.
-- La moneda no está fijada porque el enunciado no especifica una.
-- Antes de la entrega académica, ejecutar y probar el proyecto en Android, corregir cualquier incidencia del entorno y guardar capturas reales de la aplicación funcionando.
+- La aplicación está diseñada para funcionar localmente, sin necesidad de conexión a Internet.
+- La información se almacena en el dispositivo mediante SQLite.
+- No se establece una moneda específica, ya que el enunciado del proyecto no determina una.
+- Los clientes con dispositivos registrados no pueden eliminarse, con el objetivo de preservar la integridad del historial de reparaciones.
+
+## Objetivo del proyecto
+
+Desarrollar una herramienta que facilite la administración de un taller de reparación de equipos electrónicos, centralizando la información de los clientes, sus dispositivos, las reparaciones realizadas, los técnicos responsables y el inventario de repuestos.
+
+El proyecto aplica conceptos de desarrollo móvil, persistencia de datos, gestión de estados, arquitectura de software y operaciones transaccionales.
